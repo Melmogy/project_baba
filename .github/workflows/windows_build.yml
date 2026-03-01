@@ -45,5 +45,5 @@ git add .
 git commit -m "Initial commit with Windows workflow"
 git branch -M main
 # حط لينك الريبو بتاعك في السطر اللي جاي
-git remote add origin https://github.com/YourUsername/YourRepoName.git
+git remote add origin https://github.com/Melmogy/project_baba
 git push -u origin main
