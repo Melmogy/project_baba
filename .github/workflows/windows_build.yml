@@ -1,0 +1,49 @@
+name: Build Windows EXE
+
+# السكربت هيشتغل تلقائي لما ترفع الكود على الـ main أو الـ master
+# وممكن تشغله يدوي برضه
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Windows Release
+    runs-on: windows-latest # هنا بنأجر جهاز ويندوز مجاني من جيت هب
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable' # استخدام أحدث نسخة مستقرة من فلاتر
+
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Windows App
+        run: flutter build windows --release
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Payroll-App-Windows # اسم الملف اللي هتحمله في الآخر
+          # مسار الملفات بعد ما الفلاتر يبنيها
+          path: build\windows\x64\runner\Release\* ```
+
+### الخطوة 3: رفع الكود على GitHub
+لو لسه مارفعتش مشروعك على GitHub، ارفعه دلوقتي بأوامر الـ Git العادية:
+```bash
+git init
+git add .
+git commit -m "Initial commit with Windows workflow"
+git branch -M main
+# حط لينك الريبو بتاعك في السطر اللي جاي
+git remote add origin https://github.com/YourUsername/YourRepoName.git
+git push -u origin main
