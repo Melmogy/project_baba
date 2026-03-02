@@ -1,39 +1,33 @@
-name: Build Windows EXE
+name: Build Windows Release
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
+  workflow_dispatch: # ده عشان يخليك تقدر تشغل البناء بضغطة زرار من الموقع
 
 jobs:
   build:
-    name: Build Windows Release
+    name: Build for Windows
     runs-on: windows-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
 
-      - name: Enable Windows Desktop
+      - name: Enable Windows Desktop support
         run: flutter config --enable-windows-desktop
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      # الخطوة دي هتصلح أي نقص في ملفات الويندوز جوه السيرفر نفسه
-      - name: Recreate Windows Files
-        run: flutter create . --platforms windows
-
-      - name: Build Windows App
+      - name: Build Windows release
         run: flutter build windows --release
 
-      - name: Upload Windows Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v3
         with:
-          name: Payroll-App-Windows
-          path: build/windows/x64/runner/Release/
+          name: Taxes-App-Windows-2025
+          path: build\windows\x64\runner\Release
