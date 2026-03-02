@@ -1,11 +1,11 @@
-name: Build Windows Release
+name: Build Premium Windows Setup
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build for Windows
+    name: Create Windows Installer
     runs-on: windows-latest
 
     steps:
@@ -26,8 +26,45 @@ jobs:
       - name: Build Windows release
         run: flutter build windows --release
 
-      - name: Upload Windows Build
+      - name: Build Installer using Inno Setup
+        shell: powershell
+        run: |
+          # إنشاء ملف إعدادات Inno Setup برمجياً على السيرفر
+          $issContent = @"
+          [Setup]
+          AppName=نظام التسوية الضريبية 2025
+          AppVersion=1.0
+          DefaultDirName={autopf}\TaxesApp2025
+          DefaultGroupName=نظام التسوية الضريبية
+          OutputDir=..\
+          OutputBaseFilename=Taxes_App_Setup
+          Compression=lzma
+          SolidCompression=yes
+          ArchitecturesAllowed=x64
+          ArchitecturesInstallIn64BitMode=x64
+
+          [Tasks]
+          Name: "desktopicon"; Description: "إنشاء اختصار على سطح المكتب"; GroupDescription: "الاختصارات الإضافية:"; Flags: unchecked
+
+          [Files]
+          Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+          [Icons]
+          Name: "{group}\نظام التسوية الضريبية"; Filename: "{app}\payroll_app.exe"
+          Name: "{autodesktop}\نظام التسوية الضريبية"; Filename: "{app}\payroll_app.exe"; Tasks: desktopicon
+
+          [Run]
+          Filename: "{app}\payroll_app.exe"; Description: "تشغيل البرنامج الآن"; Flags: nowait postinstall skipifsilent
+          "@
+          
+          # حفظ الملف بصيغة UTF-8 عشان يدعم العربي
+          $issContent | Out-File -FilePath "installer_script.iss" -Encoding utf8
+          
+          # تشغيل برنامج Inno Setup الموجود أوتوماتيك على سيرفرات جيت هب
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer_script.iss
+
+      - name: Upload Setup File
         uses: actions/upload-artifact@v4
         with:
-          name: Taxes-App-Windows-2025
-          path: build\windows\x64\runner\Release
+          name: Windows-Premium-Setup
+          path: Taxes_App_Setup.exe
