@@ -29,14 +29,14 @@ jobs:
       - name: Build Installer using Inno Setup
         shell: powershell
         run: |
-          # إنشاء ملف إعدادات Inno Setup برمجياً على السيرفر
+          # إنشاء ملف إعدادات Inno Setup 
           $issContent = @"
           [Setup]
           AppName=نظام التسوية الضريبية 2025
           AppVersion=1.0
           DefaultDirName={autopf}\TaxesApp2025
           DefaultGroupName=نظام التسوية الضريبية
-          OutputDir=..\
+          OutputDir=Output
           OutputBaseFilename=Taxes_App_Setup
           Compression=lzma
           SolidCompression=yes
@@ -57,14 +57,14 @@ jobs:
           Filename: "{app}\payroll_app.exe"; Description: "تشغيل البرنامج الآن"; Flags: nowait postinstall skipifsilent
           "@
           
-          # حفظ الملف بصيغة UTF-8 عشان يدعم العربي
+          # حفظ الملف بصيغة UTF-8
           $issContent | Out-File -FilePath "installer_script.iss" -Encoding utf8
           
-          # تشغيل برنامج Inno Setup الموجود أوتوماتيك على سيرفرات جيت هب
+          # تشغيل برنامج Inno Setup
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer_script.iss
 
       - name: Upload Setup File
         uses: actions/upload-artifact@v4
         with:
           name: Windows-Premium-Setup
-          path: Taxes_App_Setup.exe
+          path: Output\Taxes_App_Setup.exe
