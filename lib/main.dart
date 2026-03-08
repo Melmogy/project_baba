@@ -268,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ================= تصميم الـ PDF (التقرير الاحترافي المزدوج) =================
+// ================= التقرير النهائي (نسخة حل مشكلة الـ Scroll) =================
 
 class ReportPreview extends StatelessWidget {
   final EmployeeData e;
@@ -277,8 +277,15 @@ class ReportPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('تقرير: ${e.name}')),
+      // لون AppBar غامق عشان يريح العين في الديسكتوب
+      appBar: AppBar(
+        title: Text('معاينة تقرير: ${e.name}', style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF0F172A),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: PdfPreview(
+        // الإعدادات دي بتخلي المعاينة سريعة وسلسة في الـ Scroll
+        maxPageWidth: 800, 
         build: (format) async {
           final pdf = pw.Document();
           final fontBold = await PdfGoogleFonts.cairoBold();
@@ -290,12 +297,12 @@ class ReportPreview extends StatelessWidget {
             theme: pw.ThemeData.withFont(base: fontRegular, bold: fontBold),
             build: (ctx) => [
               pw.Center(child: pw.Text('مدارس هيئة قناة السويس ببورتوفيق', style: const pw.TextStyle(fontSize: 14))),
-              pw.Center(child: pw.Text('تقرير التسوية الضريبية السنوية للموظف - 2025', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold))),
+              pw.Center(child: pw.Text('تقرير تفصيلي لصافي الدخل والربح السنوي للموظف', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold))),
               pw.SizedBox(height: 20),
               pw.Text('الاسم / ${e.name}', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
               pw.Divider(thickness: 2),
 
-              // ================= الجدول الأول =================
+              // الجدول الأول
               pw.Text('أولاً: بيان الاستحقاقات والخصومات للوصول إلى (صافي الدخل):', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
               pw.SizedBox(height: 5),
               pw.Table.fromTextArray(
@@ -317,8 +324,8 @@ class ReportPreview extends StatelessWidget {
 
               pw.SizedBox(height: 20),
 
-              // ================= الجدول الثاني والتعديل الأخير =================
-              pw.Text('ثانياً: بيان التسوية الضريبية للوصول إلى (الفروق النهائية):', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.red900)),
+              // الجدول الثاني
+              pw.Text('ثانياً: بيان الخصم الضريبي السنوي للوصول إلى (صافي الربح):', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.red900)),
               pw.SizedBox(height: 5),
               pw.Table.fromTextArray(
                 headers: ['البيـــــــــــــــــــــــــــــــــــــــــــــــــــــــــــــان', 'القيمــــــــــــــــــــــــــــة'],
@@ -343,34 +350,14 @@ class ReportPreview extends StatelessWidget {
                     ['ما زاد عن ذلك (المتبقي) * 27.5%', e.bracket275Tax.toStringAsFixed(2)],
                   ['', ''], 
                   ['يجمع كلا من ناتج النسب ويعطي مجموع الضريبه', e.calculatedTax.toStringAsFixed(2)],
-                  ['(يخصم) الضريبة المحصلة من واقع السجلات', e.alreadyPaidTax.toStringAsFixed(2)],
-                  // التعديل السحري هنا:
-                  [e.finalStatusLabel, e.taxDifference.toStringAsFixed(2)], 
+                  ['يخصم الضريبة المحصلة من واقع السجلات', e.alreadyPaidTax.toStringAsFixed(2)],
+                  // التعديل الخاص بـ (يصرف له / يحصل منه)
+                  [e.finalStatusLabel, e.taxDifference.abs().toStringAsFixed(2)], 
                 ],
                 headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.red900),
                 cellAlignment: pw.Alignment.centerRight,
                 cellStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-              ),
-
-              pw.SizedBox(height: 30),
-              
-              // بروزة النتيجة تحت الجدول بلون حسب الحالة
-              pw.Container(
-                padding: const pw.EdgeInsets.all(12),
-                decoration: pw.BoxDecoration(
-                  color: e.taxDifference < 0 ? PdfColors.green100 : (e.taxDifference > 0 ? PdfColors.red100 : PdfColors.grey200), 
-                  border: pw.Border.all(color: e.taxDifference < 0 ? PdfColors.green900 : (e.taxDifference > 0 ? PdfColors.red900 : PdfColors.grey600))
-                ),
-                child: pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-                  pw.Text('${e.finalStatusLabel}:', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                  // طباعة الرقم بالقيمة المطلقة (بدون سالب) عشان الكلمة شارحة نفسها
-                  pw.Text('${e.taxDifference.abs().toStringAsFixed(2)} ج.م', style: pw.TextStyle(
-                    fontSize: 16, 
-                    fontWeight: pw.FontWeight.bold, 
-                    color: e.taxDifference < 0 ? PdfColors.green900 : (e.taxDifference > 0 ? PdfColors.red900 : PdfColors.black)
-                  )),
-                ]),
               ),
 
               pw.SizedBox(height: 50),
@@ -382,7 +369,13 @@ class ReportPreview extends StatelessWidget {
           ));
           return pdf.save();
         },
+        // منع أي مشاكل في التفاعل مع الصفحة
+        canChangePageFormat: false,
         pdfFileName: 'تقرير_${e.name.replaceAll(' ', '_')}.pdf',
+        // تخصيص الأزرار عشان ميتوهش
+        actions: [
+          PdfPrintAction(icon: const Icon(Icons.print), jobName: 'طباعة تقرير ${e.name}'),
+        ],
       ),
     );
   }
